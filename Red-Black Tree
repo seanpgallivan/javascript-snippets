@@ -1,0 +1,222 @@
+class RBTNode {
+    constructor(key, val, par, red=true) {
+        this.key = key
+        this.val = val
+        this.red = red
+        this.par = par
+        this.left = null
+        this.right = null
+    }
+}
+class RedBlackTree {
+    constructor(comp=null) {
+        this.root = null
+        this.size = 0
+        this.minNode = null
+        this.maxNode = null
+        this.comp = comp || ((a,b) => a - b)
+    }
+    find(key) {
+        // Find the target node and its par
+        let node = this.root,
+            par, side
+        while (node && (side = this.dir(key, node))) {
+            par = node
+            node = node[side]
+        }
+        return [node, par]
+    }
+    add(key) {
+        // Increment counter or insert new node
+        let [node, par] = this.find(key)
+        this.size++
+        if (node)
+            node.val += 1
+        else
+            this.insertNode(new RBTNode(key, 1, par))
+    }
+    rem(key) {
+        // Decrement counter or delete new node
+        let [node, par] = this.find(key)
+        if (!node)
+            return false
+        this.size--
+        node.val -= 1
+        if (!node.val)
+            this.deleteNode(node)
+        return true
+    }
+    insertNode(node) {
+        if (!node.par) {
+            // New root
+            this.root = node
+            this.minNode = node
+            this.maxNode = node
+        } else {
+            let par = node.par,
+                parSide = this.dir(node, par)
+            par[parSide] = node
+            // Recalculate new min or max if necessary
+            if (par === this.minNode && parSide === "left")
+                this.minNode = node
+            else if (par === this.maxNode && parSide === "right")
+                this.maxNode = node
+            // Rebalance loop after insertion
+            let gpar = par.par
+            while (gpar && node.red && par.red) {
+                let gparSide = this.dir(par, gpar),
+                    gparOpp = gparSide === "left" ? "right" : "left",
+                    unc = gpar[gparOpp]
+                if (unc?.red) {
+                    par.red = false
+                    unc.red = false
+                    gpar.red = true
+                } else {
+                    if (parSide !== gparSide) {
+                        // If node is in-turn,
+                        // rotate par outward and reassign
+                        this.rotate(par, gparSide)
+                        node = par
+                        par = node.par
+                    }
+                    // Rotate gpar inward and recolor
+                    this.rotate(gpar, gparOpp)
+                    par.red = false
+                    gpar.red = true
+                }
+                // Re-center on gpar for next loop iteration
+                node = gpar
+                par = node.par
+                parSide = this.dir(node, par)
+                gpar = par?.par
+            }
+        } 
+        // Ensure root is black
+        this.root.red = false
+    }
+    deleteNode(node) {
+        if (!this.size) {
+            // Deleting solitary root
+            this.root = null
+            this.minNode = null
+            this.maxNode = null
+            return
+        }
+        // Recalculate min or max if necessary
+        // else check for two non-null children
+        if (node === this.minNode) {
+            this.minNode = this.closest(node, "right") || node.par
+        } else if (node === this.maxNode) {
+            this.maxNode = this.closest(node, "left") || node.par
+        } else if (node.left && node.right) {
+            // Ensure deletion node has only one child
+            // by finding closest smaller replacement,
+            // copying its attributes to node,
+            // & marking replacement for deletion instead
+            let repl = this.closest(node, "left")
+            node.key = repl.key
+            node.val = repl.val
+            if (repl === this.minNode)
+                this.minNode = node
+            node = repl
+        }
+        // Delete node and move up its child
+        let par = node.par,
+            child = node.left || node.right,
+            side = this.dir(node, par) || "left",
+            balanced = child?.red || node.red
+        if (par)
+            par[side] = child
+        else
+            this.root = child
+        if (child) {
+            child.par = par
+            child.red = false
+        }
+        // If both node and child were black,
+        // do rebalancing loop after deletion
+        while (!balanced) {
+            let opp = side === "left" ? "right" : "left",
+                sib = par[opp],
+                cneph = sib[side],
+                dneph = sib[opp]
+            if (sib.red) {
+                this.rotate(par, side)
+                par.red = true
+                sib.red = false
+                sib = cneph
+                cneph = sib[side]
+                dneph = sib[opp]
+            }
+            if (dneph?.red) {
+                this.rotate(par, side)
+                sib.red = par.red
+                par.red = false
+                dneph.red = false
+                return
+            } else if (cneph?.red) {
+                this.rotate(sib, opp)
+                cneph.red = false
+                sib.red = true
+                dneph = sib
+                sib = cneph
+                cneph = sib[side]
+            } else if (par.red) {
+                par.red = false
+                sib.red = true
+                return
+            } else {
+                sib.red = true
+                node = par
+                par = node.par
+                if (!par)
+                    return
+                side = this.dir(node, par)
+            }
+        }
+    }
+    dir(child, par) {
+        if (child instanceof RBTNode)
+            child = child.key
+        let cmp = this.comp(child, par?.key)
+        return cmp < 0 ? "left" : (cmp > 0 ? "right" : null)
+    }
+    closest(node, side) {
+        let runner = node[side],
+            opp = side === "left" ? "right" : "left"
+        while (runner?.[opp])
+           runner = runner[opp]
+        return runner
+    }
+    rotate(node, side) {
+        // Rotate node's subtree toward side
+        let par = node.par,
+            opp = side === "left" ? "right" : "left",
+            child = node[opp],
+            gchild = child[side]
+        node[opp] = gchild
+        child[side] = node
+        node.par = child
+        child.par = par
+        if (par) {
+            side = this.dir(node, par)
+            par[side] = child
+        } else
+            this.root = child
+        if (gchild)
+            gchild.par = node
+    }
+    has(key) { return !!this.find(key)[0] }
+    min() { return this.minNode?.key }
+    max() { return this.maxNode?.key }
+    toArray(node=this.root, res=[]) {
+        // DFS inorder traversal
+        if (!node)
+            return res
+        this.toArray(node.left, res)
+        for (let i = 0; i < node.val; i++)
+            res.push(node.key)
+        this.toArray(node.right, res)
+        return res
+    }
+}
