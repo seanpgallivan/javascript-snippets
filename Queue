@@ -1,0 +1,35 @@
+class QueNode {
+    constructor(val=null, next=null) {
+        this.val = val
+        this.next = next
+    }
+}
+class Que {
+    constructor(arr=[]) {
+        this.head = null
+        this.tail = null
+        this.size = 0
+        this.push(...arr)
+    }
+    front = _ => this.size ? this.head.val : null
+    push(...args) {
+        for (let val of args) {
+            if (!this.size) {
+                this.head = new QueNode(val)
+                this.tail = this.head
+            } else {
+                this.tail.next = new QueNode(val)
+                this.tail = this.tail.next
+            }
+            this.size++
+        }
+    }
+    shift() {
+        if (!this.size)
+            return null
+        let val = this.head.val
+        this.head = this.head.next
+        this.size--
+        return val
+    }
+}
