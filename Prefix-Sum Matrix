@@ -1,0 +1,23 @@
+class psMatrix {
+    constructor(input, result=null) {
+        this.ps = this.build(input, result)
+    }
+    build(input, result) {
+        let n = input.length, m = input[0].length
+        result ||= Array.from({length: n}, _ => new Array(m))
+        for (let i = 0; i < n; i++)
+            for (let j = 0; j < m; j++) {
+                let left = ~~result[i][j-1],
+                    up = ~~result[i-1]?.[j],
+                    diag = ~~result[i-1]?.[j-1]
+                result[i][j] = input[i][j] + left + up - diag
+            }
+        return result
+    }
+    sum(x1,y1,x2,y2) {
+        let left = ~~this.ps[x2][y1-1],
+            up = ~~this.ps[x1-1]?.[y2],
+            diag = ~~this.ps[x1-1]?.[y1-1]
+        return this.ps[x2][y2] - left - up + diag
+    }
+}
