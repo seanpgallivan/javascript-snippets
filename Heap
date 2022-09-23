@@ -1,0 +1,45 @@
+class Heap {
+    constructor(comp=null) {
+        this.heap = [undefined]
+        this.size = 0
+        this.comp = comp
+        if (comp === "min" || comp === null) this.comp = (a,b) => a - b
+        else if (comp === "max") this.comp = (a,b) => b - a
+    }
+    top() { return this.size ? this.heap[1] : null }
+    swap(a,b) {
+        let temp = this.heap[a]
+        this.heap[a] = this.heap[b], this.heap[b] = temp
+    }
+    pickChild(ix) {
+        let cix = ix << 1, c1 = this.heap[cix], c2 = this.heap[cix + 1]
+        return cix >= this.size || this.comp(c1, c2) < 0 ? cix : cix + 1
+    }
+    push(val) {
+        let valIx = ++this.size, parIx = valIx >> 1, par = this.heap[parIx]
+        this.heap.push(val)
+        while (par !== undefined && this.comp(par, val) > 0) {
+            this.swap(valIx, parIx)
+            valIx = parIx, val = this.heap[valIx]
+            parIx = valIx >> 1, par = this.heap[parIx]
+        }
+    }
+    pop() {
+        if (!this.size) return null
+        let res = this.heap[1], valIx = 1, val
+        if (--this.size) this.heap[1] = this.heap.pop(), val = this.heap[1]
+        else return this.heap.pop()
+        let childIx = this.pickChild(1), child = this.heap[childIx]
+        while (child !== undefined && this.comp(val, child) > 0) {
+            this.swap(valIx, childIx)
+            valIx = childIx, val = this.heap[valIx]
+            childIx = this.pickChild(valIx), child = this.heap[childIx]
+        }
+        return res
+    }
+    toArray(k=this.size) {
+        let res = []
+        while (k--) res.push(this.pop())
+        return res
+    }
+}
