@@ -1,0 +1,95 @@
+class SegTreeNode {
+    constructor(val, from, to) {
+        this.val = val
+        this.from = from
+        this.to = to
+        this.min = val
+        this.max = val
+        this.left = null
+        this.right = null
+    }
+}
+class SegTree {
+    constructor(arr) {
+        this.n = arr.length
+        this.root = this.build(arr, 0, this.n - 1)
+    }
+    build(arr, from, to) {
+        let node = new SegTreeNode(arr[from], from, to)
+        if (from !== to) {
+            let mid = from + to >> 1,
+                left = this.build(arr, from, mid),
+                right = this.build(arr, mid + 1, to)
+            node.left = left, node.right = right
+            this.calc(node)
+        }
+        return node
+    }
+    calc(node) {
+        let left = node.left, right = node.right
+        node.val = this.combine(left.val, right.val)
+        node.max = this.compare(left.max, right.max, 1)
+        node.min = this.compare(left.min, right.min, -1)
+    }
+    compare(a, b, side) {
+        if (a > b)
+            return side === 1 ? a : b
+        else
+            return side === 1 ? b : a
+    }
+    combine(a, b) {
+        return a + b
+    }
+    singleEval(index, node, func, ...args) {
+        if (node.from === node.to) {
+            if (func === "add")
+                node.val = this.combine(node.val, args[0])
+            else if (func === "update")
+                node.val = args[0]
+        } else {
+            if (index > (node.from + node.to >> 1))
+                this.singleEval(index, node.right, func, ...args)
+            else
+                this.singleEval(index, node.left, func, ...args)
+            this.calc(node)
+        }
+    }
+    update(index, val) {
+        this.singleEval(index, this.root, "update", val)
+    }
+    incr(index) {
+        this.singleEval(index, this.root, "add", 1)
+    }
+    decr(index) {
+        this.singleEval(index, this.root, "add", -1)
+    }
+    add(index, val) {
+        this.singleEval(index, this.root, "add", val)
+    }
+    subt(index, val) {
+        this.singleEval(index, this.root, "add", -val)
+    }
+    rangeEval(from, to, node, attr, func, ...args) {
+        if (from === node.from && to === node.to)
+            return node[attr]
+        let mid = node.from + node.to >> 1
+        if (from > mid)
+            return this.rangeEval(from, to, node.right, attr, func, ...args)
+        else if (to <= mid)
+            return this.rangeEval(from, to, node.left, attr, func, ...args)
+        else {
+            let left = this.rangeEval(from, mid, node.left, attr, func, ...args),
+                right = this.rangeEval(mid + 1, to, node.right, attr, func, ...args)
+            return func(left, right, ...args)
+        }
+    }
+    rangeSum(from, to) {
+        return this.rangeEval(from, to, this.root, "val", this.combine)
+    }
+    rangeMax(from, to) {
+        return this.rangeEval(from, to, this.root, "max", this.compare, 1)
+    }
+    rangeMin(from, to) {
+        return this.rangeEval(from, to, this.root, "min", this.compare, -1)
+    }
+}
