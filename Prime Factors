@@ -1,0 +1,9 @@
+const primeFactors = num => {
+    let pf = new Map(), count = 0
+    for (let i = 2; i <= Math.sqrt(num); i++) {
+        while (num % i === 0) count++, num /= i
+        if (count)  pf.set(i, count), count = 0
+    }
+    if (num !== 1) pf.set(num,1)
+    return pf
+};
