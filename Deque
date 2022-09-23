@@ -1,0 +1,45 @@
+class DeqNode {
+    constructor(val=undefined, prev=null, next=null) {
+        this.val = val
+        this.prev = prev
+        this.next = next
+    }
+}
+class Deque {
+    constructor(arr=[]) {
+        this.head = new DeqNode()
+        this.tail = new DeqNode(undefined, this.head)
+        this.head.next = this.tail
+        this.size = 0
+        this.push(...arr)
+    }
+    back = _ => this.tail.prev.val
+    front = _ => this.head.next.val
+    pop = _ => this.delete(this.tail.prev)
+    shift = _ => this.delete(this.head.next)
+    push(...args) {
+        for (let val of args)
+            this.insert(val, this.tail.prev, this.tail)
+    }
+    unshift(...args) {
+        for (let val of args.reverse())
+            this.insert(val, this.head, this.head.next)
+    }
+    insert(val, prev, next) {
+        prev.next = new DeqNode(val, prev, next)
+        next.prev = prev.next, this.size++
+    }
+    delete(node) {
+        if (node === this.head || node === this.tail)
+            return null
+        let val = node.val, prev = node.prev, next = node.next
+        next.prev = prev, prev.next = next, this.size--
+        return val  
+    }
+    toArray() {
+        let arr = [], curr = this.head.next
+        while (curr !== this.tail)
+            arr.push(curr.val), curr = curr.next
+        return arr
+    }
+}
