@@ -1,0 +1,77 @@
+class SkipList {
+    constructor() {
+        this.root = new SkipNode(-Infinity)
+        this.size = 0
+    }
+    find(num) {
+        let curr = this.root
+        while (true) {
+            if (curr.next?.val <= num)
+                curr = curr.next
+            else if (curr.below)
+                curr = curr.below
+            else
+                return curr
+        }
+    }
+    insert(num, curr, below) {
+        let node = new SkipNode(num, curr, curr.next, below)
+        curr.next = node
+        if (node.next)
+            node.next.prev = node
+        if (node.below)
+            node.below.above = node
+        return node
+    }
+    search(num) { return this.find(num)?.val === num };
+    add(num) {
+        let curr = this.find(num)
+        this.size++
+        if (curr.val === num)
+            curr.count++
+        else
+            for (let level = 0, below = null; true; level++) {
+                below = this.insert(num, curr, below)
+                if (this.size < (1 << level) || Math.random() * 3 > 1)
+                    return
+                while (curr !== this.root && !curr.above)
+                    curr = curr.prev
+                if (curr === this.root) {
+                    this.root = new SkipNode(-Infinity, null, null, this.root)
+                    curr.above = this.root
+                }
+                curr = curr.above
+            }
+    };
+    erase(num) {
+        let curr = this.find(num)
+        if (curr.val !== num)
+            return false
+        if (curr.count > 1)
+            curr.count--
+        else 
+            while (curr) {
+                if (curr.prev === this.root && !curr.next) {
+                    this.root = this.root.below
+                    this.root.above = null
+                    break
+                }
+                curr.prev.next = curr.next
+                if (curr.next)
+                    curr.next.prev = curr.prev
+                curr = curr.above
+            }
+        return true
+    };
+};
+
+class SkipNode {
+    constructor(val, prev=null, next=null, below=null, above=null, count=1) {
+        this.val = val
+        this.prev = prev
+        this.next = next
+        this.below = below
+        this.above = above
+        this.count = count
+    }
+}
