@@ -18,33 +18,38 @@ class RedBlackTree {
     }
     find(key) {
         // Find the target node and its par
+        if (key === this.maxNode?.key)
+            return this.maxNode
+        if (key === this.minNode?.key)
+            return this.minNode
         let node = this.root,
             par, side
         while (node && (side = this.dir(key, node))) {
             par = node
             node = node[side]
         }
-        return [node, par]
+        return node ? node : par
     }
     add(key) {
         // Increment counter or insert new node
-        let [node, par] = this.find(key)
+        let node = this.find(key)
         this.size++
-        if (node)
+        if (node?.key === key)
             node.val += 1
         else
-            this.insertNode(new RBTNode(key, 1, par))
+            this.insertNode(new RBTNode(key, 1, node))
     }
     rem(key) {
-        // Decrement counter or delete new node
-        let [node, par] = this.find(key)
-        if (!node)
-            return false
-        this.size--
-        node.val -= 1
-        if (!node.val)
-            this.deleteNode(node)
-        return true
+        // Decrement counter or delete node
+        let node = this.find(key)
+        if (node?.key === key) {
+            this.size--
+            node.val -= 1
+            if (!node.val)
+                this.deleteNode(node)
+            return true
+        }
+        return false
     }
     insertNode(node) {
         if (!node.par) {
@@ -206,7 +211,7 @@ class RedBlackTree {
         if (gchild)
             gchild.par = node
     }
-    has(key) { return !!this.find(key)[0] }
+    has(key) { return this.find(key)?.key === key }
     min() { return this.minNode?.key }
     max() { return this.maxNode?.key }
     toArray(node=this.root, res=[]) {
