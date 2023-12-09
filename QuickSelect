@@ -1,5 +1,7 @@
-const quickSelect = (arr, target, comp) => {
-    comp ||= (a,b) => a - b
+const kthMostElement = (arr, target, comp) => {
+    if (target < 0 || target > arr.length)
+        return undefined
+    comp ||= (a,b) => b - a
     let left = 0, right = arr.length - 1
     while (true) {
         let i = left, j = left, k = right, 
@@ -19,6 +21,33 @@ const quickSelect = (arr, target, comp) => {
             left = j
         else
             return arr
+    }
+};
+const kMostElements = (arr, target, comp) => {
+    if (target <= 0)
+        return []
+    if (target >= arr.length)
+        return arr
+    comp ||= (a,b) => b - a
+    let left = 0, right = arr.length - 1
+    while (true) {
+        let i = left, j = left, k = right, 
+            pivot = arr[findPivot(arr, left, right, comp)]
+        while (j <= k) {
+            let result = comp(arr[j], pivot)
+            if (result < 0)
+                swap(arr, i++, j++)
+            else if (result > 0)
+                swap(arr, j, k--)
+            else
+                j++
+        }
+        if (target < i)
+            right = i - 1
+        else if (target > j)
+            left = j
+        else
+            return arr.slice(0, target)
     }
 };
 const findPivot = (arr, left, right, comp) => {
