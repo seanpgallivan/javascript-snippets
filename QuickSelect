@@ -13,10 +13,10 @@ const quickSelect = (arr, target, comp) => {
             else
                 j++
         }
-        if (target < i)
-            right = i - 1
+        if (target <= i)
+            right = i
         else if (target > j)
-            left = k + 1
+            left = j
         else
             return arr
     }
