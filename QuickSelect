@@ -23,11 +23,11 @@ const quickSelect = (arr, target, comp) => {
 };
 const findPivot = (arr, left, right, comp) => {
     let mid = left + right >> 1
-    if (comp(left, right) > 0)
+    if (comp(arr[left], arr[right]) > 0)
         swap(arr, left, right)
-    if (comp(left, mid) > 0)
+    if (comp(arr[left], arr[mid]) > 0)
         swap(arr, left, mid)
-    if (comp(mid, right) > 0)
+    if (comp(arr[mid], arr[right]) > 0)
         swap(arr, mid, right)
     return mid
 }
