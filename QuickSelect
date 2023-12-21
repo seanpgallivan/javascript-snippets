@@ -1,8 +1,6 @@
-const kthElement = (arr, k, comp) => {
+const kthElement = (arr, k, left=0, right=arr.length - 1, comp=(a,b) => a - b) => {
     if (k < 0 || k > arr.length)
         return undefined
-    comp ||= (a,b) => a - b
-    let left = 0, right = arr.length - 1
     while (true) {
         let a = left, b = left, c = right, 
             pivot = arr[findPivot(arr, left, right, comp)]
@@ -23,13 +21,11 @@ const kthElement = (arr, k, comp) => {
             return arr[k - 1]
     }
 };
-const kFirstElements = (arr, k, comp) => {
+const kFirstElements = (arr, k, left=0, right=arr.length - 1, comp=(a,b) => a - b) => {
     if (k <= 0)
         return []
     if (k >= arr.length)
         return arr
-    comp ||= (a,b) => a - b
-    let left = 0, right = arr.length - 1
     while (true) {
         let a = left, b = left, c = right, 
             pivot = arr[findPivot(arr, left, right, comp)]
@@ -50,6 +46,7 @@ const kFirstElements = (arr, k, comp) => {
             return arr.slice(0, k)
     }
 };
+// Median of 3
 const findPivot = (arr, left, right, comp) => {
     let mid = left + right >> 1
     if (comp(arr[left], arr[right]) > 0)
