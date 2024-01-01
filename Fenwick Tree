@@ -1,7 +1,7 @@
 class FenwickTree {
     constructor(arg) {
         this.n = typeof arg === "number" ? arg : arg.length
-        this.bit = new Uint32Array(1 + this.n)
+        this.bit = new Array(1 + this.n)
         if (typeof arg === "object") 
             for (let i = 0; i < this.n; i++)
                 this.add(i, arg[i])
