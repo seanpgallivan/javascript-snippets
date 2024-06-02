@@ -1,0 +1,39 @@
+// Knuth–Morris–Pratt algorithm
+const kmp = (str, word, table=kmpTFunc(word)) => {
+    let n = str.length, m = word.length, res = []
+    for (let i = 0, j = 0; i < n; )
+        if (word[j] === str[i]) {
+            i++, j++
+            if (j === m)
+                res.push(i - j), j = table[j]
+        } else if ((j = table[j]) < 0)
+            i++, j++
+    return res
+}
+
+const kmpTFunc = word => {
+    let n = word.length, table = new Int32Array(n + 1), i, j
+    for (table[0] = -1, i = 1, j = 0; i < n; i++, j++)
+        if (word[i] === word[j])
+            table[i] = table[j]
+        else 
+            for (table[i] = j; j >= 0 && word[i] !== word[j]; )
+                j = table[j]
+    table[i] = j
+    return table
+}
+
+
+// z-Function algorithm
+const zFunc = str => {
+    let n = str.length, z = new Uint32Array(n), l = 0, r = 0
+    for (let i = 1; i < n; i++) {
+        if (i < r)
+            z[i] = Math.min(r - i, z[i - l])
+        while (i + z[i] < n && str[z[i]] === str[i + z[i]])
+            z[i]++
+        if (i + z[i] > r)
+            l = i, r = i + z[i]
+    }
+    return z
+}
