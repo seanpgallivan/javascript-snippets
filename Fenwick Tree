@@ -1,19 +1,41 @@
-class FenwickTree {
+// prefix sum Fenwick Tree (gets sum of range [0,i])
+class pSumFWTree {
     constructor(arg) {
         this.n = typeof arg === "number" ? arg : arg.length
-        this.bit = new Array(1 + this.n)
+        this.bit = new Array(this.n + 1).fill(0)
         if (typeof arg === "object") 
             for (let i = 0; i < this.n; i++)
                 this.add(i, arg[i])
     }
-    psum(i) {
+    add(i, val) {
+        for (i++; i <= this.n; i += i & -i)
+            this.bit[i] += val
+    }
+    getSum(i) {
         let sum = 0
         for (i++; i; i -= i & -i)
             sum += this.bit[i]
         return sum
     }
-    add(i, val=1) {
+}
+
+// prefix max Fenwick Tree (gets max in range [0,i])
+class pMaxFWTree {
+    constructor(arg) {
+        this.n = typeof arg === "number" ? arg : arg.length
+        this.bit = new Array(this.n + 1).fill(-Infinity)
+        if (typeof arg === "object") 
+            for (let i = 0; i < this.n; i++)
+                this.set(i, arg[i])
+    }
+    set(i, val) {
         for (i++; i <= this.n; i += i & -i)
-            this.bit[i] += val
+            this.bit[i] = Math.max(val, this.bit[i])
+    }
+    getMax(i) {
+        let val = 0
+        for (i++; i; i -= i & -i)
+            val = Math.max(val, this.bit[i])
+        return val
     }
 }
