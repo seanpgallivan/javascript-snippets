@@ -61,8 +61,8 @@ class SegTreeArrLazy {
         if (from === to) 
             return this.data[p] = arr[from]
         let mid = from + to >> 1,
-            left = this.build(arr, p << 1, from, mid),
-            right = this.build(arr, (p << 1) + 1, mid + 1, to)
+            left = this.build(arr, p * 2, from, mid),
+            right = this.build(arr, p * 2 + 1, mid + 1, to)
         return this.data[p] = left + right
     }
     set(i, val) {
@@ -122,7 +122,6 @@ class SegTreeArrLazy {
         return res
     }
 }
-
 
 
 
