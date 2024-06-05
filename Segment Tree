@@ -2,9 +2,9 @@
 class SegTreeArr {
     constructor(arg) {
         this.n = typeof arg === "number" ? arg : arg.length
-        this.lookup = new Int32Array(this.n)
+        this.lookup = new Array(this.n).fill(0)
         let len = 1 << Math.ceil(Math.log2(this.n)) + 1
-        this.data = new Int32Array(len)
+        this.data = new Array(len).fill(0)
         if (typeof arg === "object") 
             this.build(arg)
     }
@@ -14,8 +14,8 @@ class SegTreeArr {
             return this.data[p] = arr[from]
         }
         let mid = from + to >> 1,
-            left = this.build(arr, p << 1, from, mid),
-            right = this.build(arr, (p << 1) + 1, mid + 1, to)
+            left = this.build(arr, p * 2, from, mid),
+            right = this.build(arr, p * 2 + 1, mid + 1, to)
         return this.data[p] = left + right
     }
     set(i, val) {
@@ -29,18 +29,17 @@ class SegTreeArr {
         return this.data[this.lookup[i]]
     }
     rangeSum(i, j, p=1, from=0, to=this.n-1) {
-        if (i >= from && j <= to)
+        if (i <= from && to <= j)
             return this.data[p]
         let mid = from + to >> 1,
-            left = i > mid ? 0 : rangeSum(i, j, p << 1, from, mid),
-            right = j <= mid ? 0 : rangeSum(i, j, (p << 1) + 1, mid + 1, to)
+            left = mid < i ? 0 : this.rangeSum(i, j, p * 2, from, mid),
+            right = j <= mid ? 0 : this.rangeSum(i, j, p * 2 + 1, mid + 1, to)
         return left + right
     }
     toArray() {
-        return Int32Array.from(this.lookup, x => this.data[x])
+        return this.lookup.map(p => this.data[p])
     }
 }
-
 
 
 // Verbose Segment Tree w/ nodes
