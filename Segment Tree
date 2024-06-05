@@ -81,18 +81,6 @@ class SegTreeArrLazy {
     get(i) {
         return this.rangeSum(i, i)
     }
-    rangeAdd(i, j, val, p=1, from=0, to=this.n-1) {
-        if (i <= from && to <= j) {
-            this.lazy[p] += val
-            return val
-        }
-        let mid = from + to >> 1
-        if (i <= mid)
-            this.rangeAdd(i, j, val, p * 2, from, mid)
-        if (mid < j)
-            this.rangeAdd(i, j, val, p * 2 + 1, mid + 1, to)
-        return val
-    }
     sink(p, from, to) {
         this.data[p] += this.lazy[p] * (to - from + 1)
         if (from < to) {
@@ -101,7 +89,19 @@ class SegTreeArrLazy {
         }
         this.lazy[p] = 0
     }
-    rangeSum(i, j, p=1, from=0, to=this.n-1) {
+    rangeAdd(i, j, val, p=1, from=0, to=this.n-1) {
+        if (i <= from && to <= j) {
+            this.lazy[p] += val
+            return val * (to - from + 1)
+        }
+        this.sink(p, from, to)
+        let mid = from + to >> 1,
+            left = i <= mid ? this.rangeAdd(i, j, val, p * 2, from, mid) : 0,
+            right = mid < j ? this.rangeAdd(i, j, val, p * 2 + 1, mid + 1, to) : 0
+        this.data[p] += left + right
+        return left + right
+    }
+    rangeSum(i=0, j=this.n-1, p=1, from=0, to=this.n-1) {
         this.sink(p, from, to)
         if (i <= from && to <= j)
             return this.data[p]
