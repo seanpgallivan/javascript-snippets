@@ -1,4 +1,6 @@
+// -----------------------------------------------
 // Simple Segment Tree w/ array
+// -----------------------------------------------
 class SegTreeArr {
     constructor(arg) {
         this.n = typeof arg === "number" ? arg : arg.length
@@ -42,7 +44,91 @@ class SegTreeArr {
 }
 
 
+
+// -----------------------------------------------
+// Lazy Segment Tree w/ array
+// -----------------------------------------------
+class SegTreeArrLazy {
+    constructor(arg) {
+        this.n = typeof arg === "number" ? arg : arg.length
+        let len = 1 << Math.ceil(Math.log2(this.n)) + 1
+        this.data = new Array(len).fill(0)
+        this.lazy = new Array(len).fill(0)
+        if (typeof arg === "object") 
+            this.build(arg)
+    }
+    build(arr, p=1, from=0, to=this.n-1) {
+        if (from === to) 
+            return this.data[p] = arr[from]
+        let mid = from + to >> 1,
+            left = this.build(arr, p << 1, from, mid),
+            right = this.build(arr, (p << 1) + 1, mid + 1, to)
+        return this.data[p] = left + right
+    }
+    set(i, val) {
+        let p = 1, from = 0, to = this.n - 1
+        while (from !== to) {
+            val -= this.lazy[p]
+            let mid = from + to >> 1
+            if (i > mid)
+                from = mid + 1, p += p + 1
+            else
+                to = mid, p += p
+        }
+        this.lazy[p] = val - this.data[p]
+        return val
+    }
+    get(i) {
+        return this.rangeSum(i, i)
+    }
+    rangeAdd(i, j, val, p=1, from=0, to=this.n-1) {
+        if (i <= from && to <= j) {
+            this.lazy[p] += val
+            return val
+        }
+        let mid = from + to >> 1
+        if (i <= mid)
+            this.rangeAdd(i, j, val, p * 2, from, mid)
+        if (mid < j)
+            this.rangeAdd(i, j, val, p * 2 + 1, mid + 1, to)
+        return val
+    }
+    sink(p, from, to) {
+        this.data[p] += this.lazy[p] * (to - from + 1)
+        if (from < to) {
+            this.lazy[p * 2] += this.lazy[p]
+            this.lazy[p * 2 + 1] += this.lazy[p]
+        }
+        this.lazy[p] = 0
+    }
+    rangeSum(i, j, p=1, from=0, to=this.n-1) {
+        this.sink(p, from, to)
+        if (i <= from && to <= j)
+            return this.data[p]
+        let mid = from + to >> 1,
+            left = i <= mid ? this.rangeSum(i, j, p * 2, from, mid) : 0,
+            right = mid < j ? this.rangeSum(i, j, p * 2 + 1, mid + 1, to) : 0
+        return left + right
+    }
+    toArray(res=new Array(this.n), p=1, from=0, to=this.n-1) {
+        this.sink(p, from, to)
+        if (from === to)
+            res[from] = this.data[p]
+        else {
+            let mid = from + to >> 1
+            this.toArray(res, p * 2, from, mid)
+            this.toArray(res, p * 2 + 1, mid + 1, to)
+        }
+        return res
+    }
+}
+
+
+
+
+// -----------------------------------------------
 // Verbose Segment Tree w/ nodes
+// -----------------------------------------------
 class SegTreeNode {
     constructor(val, from, to) {
         this.val = val
