@@ -214,14 +214,14 @@ class RedBlackTree {
     has(key) { return this.find(key)?.key === key }
     min() { return this.minNode?.key }
     max() { return this.maxNode?.key }
-    toArray(node=this.root, res=[]) {
+    *inorder(node=this.root) {
         // DFS inorder traversal
-        if (!node)
-            return res
-        this.toArray(node.left, res)
-        for (let i = 0; i < node.val; i++)
-            res.push(node.key)
-        this.toArray(node.right, res)
-        return res
+        if (node) {
+            yield* this.inorder(node.left)
+            for (let i = 0; i < node.val; i++)
+                yield node.key
+            yield* this.inorder(node.right)
+        }
     }
+    toArray() { return [...this.inorder()] }
 }
