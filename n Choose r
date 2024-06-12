@@ -1,0 +1,8 @@
+// n Choose r (combinatorics) or n-th k-simplex number (Pascal's triangle)
+// formula: n! / (r! * (n - r)!)
+const nCr = (n, r) => {
+    let res = 1, i = 1
+    for (n--; i <= r; i++)
+        res *= (n + 1) / i
+    return res
+}
