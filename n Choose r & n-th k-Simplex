@@ -10,21 +10,24 @@
 // ----------------------------------------------------
 // Relationships:
 // ----------------------------------------------------
-// nCr(n, r) = nCr(n, n - r)
-// nthKSimplex(n, k) = nthKSimplex(k + 1, n - 1)
-// nthKSimplex(n, k) = nCr(n + k - 1, Math.min(k, n - 1))
+// ncr(n, r) = nCr(n, n - r)
+// nks(n, k) = nks(k + 1, n - 1)
+// nks(n, k) = ncr(n + k - 1, Math.min(k, n - 1))
 
 
 // ----------------------------------------------------
 // O(r/k) time, O(1) space, small numbers
 // ----------------------------------------------------
-const nCr = (n, r) => {
+const ncr = (n, r) => {
+    r = Math.min(r, n - r)
     let res = 1, i = 1
     for (n++; i <= r; i++)
         res *= (n - i) / i
     return Math.round(res)
 }
-const nthKSimplex = (n, k) => {
+const nks = (n, k) => {
+    if (n <= k)
+        [n, k] = [k + 1, n - 1]
     let res = 1, i = 1
     for (n--; i <= k; i++)
         res *= (n + i) / i
@@ -35,15 +38,18 @@ const nthKSimplex = (n, k) => {
 // ----------------------------------------------------
 // O(r/k) time, O(1) space, big numbers
 // ----------------------------------------------------
-const nCr = (n, r) => {
+const ncr = (n, r) => {
+    r = Math.min(r, n - r)
     let res = 1n, bn = BigInt(n + 1)
     for (let i = 1n; i <= r; i++)
         res = res * (bn - i) / i
     return res
 }
-const nthKSimplex = (n, r) => {
+const nks = (n, k) => {
+    if (n <= k)
+        [n, k] = [k + 1, n - 1]
     let res = 1n, bn = BigInt(n - 1)
-    for (let i = 1n; i <= r; i++)
+    for (let i = 1n; i <= k; i++)
         res = res * (bn + i) / i
     return res
 }
@@ -52,13 +58,13 @@ const nthKSimplex = (n, r) => {
 // ----------------------------------------------------
 // O(r/k) time, O(r/k) space, small numbers
 // ----------------------------------------------------
-const nCr = (n, r) => r ? n * nCr(n - 1, r - 1) / r : 1
-const nthKSimplex = (n, k) => k ? (n + k - 1) * nthKSimplex(n, k - 1) / k : 1
+const ncr = (n, r) => r ? ncr(n - 1, r - 1) * n / r : 1
+const nks = (n, k) => k ? nks(n, k - 1) * (n + k - 1) / k : 1
 
 
 // ----------------------------------------------------
 // O(r/k) time, O(r/k) space, big numbers
 // ----------------------------------------------------
-const nCr = (n, r) => r ? BigInt(n) * nCr(n - 1, r - 1) / BigInt(r) : 1n
-const nthKSimplex = (n, k) => k ? BigInt(n + k - 1) * nthKSimplex(n, k - 1) / BigInt(k) : 1n
+const ncr = (n, r) => r ? ncr(n - 1, r - 1) * BigInt(n) / BigInt(r) : 1n
+const nks = (n, k) => k ? nks(n, k - 1) * BigInt(n + k - 1) / BigInt(k) : 1n
 
