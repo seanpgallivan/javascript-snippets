@@ -9,7 +9,7 @@ const nCr = (n, r) => {
 
 
 // n-th k-Simplex Number (Pascal's triangle)
-// (n + k - 1)! / (n! * (k - 1)!)
+// formula: (n + k)! / (n! * k!)
 const nthKSimplex = (n, k) => {
     let res = 1, i = 1
     for (n--; i <= k; i++)
