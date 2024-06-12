@@ -1,0 +1,64 @@
+// ----------------------------------------------------
+// n Choose r (combinatorics)
+// formula: n! / (r! * (n - r)!)
+// ----------------------------------------------------
+// n-th k-Simplex Number (Pascal's triangle)
+// formula: ((n - 1) + k)! / ((n - 1)! * k!)
+// ----------------------------------------------------
+
+
+// ----------------------------------------------------
+// Relationships:
+// ----------------------------------------------------
+// nCr(n, r) = nCr(n, n - r)
+// nthKSimplex(n, k) = nthKSimplex(k + 1, n - 1)
+// nthKSimplex(n, k) = nCr(n + k - 1, Math.min(k, n - 1))
+
+
+// ----------------------------------------------------
+// O(r/k) time, O(1) space, small numbers
+// ----------------------------------------------------
+const nCr = (n, r) => {
+    let res = 1, i = 1
+    for (n++; i <= r; i++)
+        res *= (n - i) / i
+    return Math.round(res)
+}
+const nthKSimplex = (n, k) => {
+    let res = 1, i = 1
+    for (n--; i <= k; i++)
+        res *= (n + i) / i
+    return res
+}
+
+
+// ----------------------------------------------------
+// O(r/k) time, O(1) space, big numbers
+// ----------------------------------------------------
+const nCr = (n, r) => {
+    let res = 1n, bn = BigInt(n + 1)
+    for (let i = 1n; i <= r; i++)
+        res = res * (bn - i) / i
+    return res
+}
+const nthKSimplex = (n, r) => {
+    let res = 1n, bn = BigInt(n - 1)
+    for (let i = 1n; i <= r; i++)
+        res = res * (bn + i) / i
+    return res
+}
+
+
+// ----------------------------------------------------
+// O(r/k) time, O(r/k) space, small numbers
+// ----------------------------------------------------
+const nCr = (n, r) => r ? n * nCr(n - 1, r - 1) / r : 1
+const nthKSimplex = (n, k) => k ? (n + k - 1) * nthKSimplex(n, k - 1) / k : 1
+
+
+// ----------------------------------------------------
+// O(r/k) time, O(r/k) space, big numbers
+// ----------------------------------------------------
+const nCr = (n, r) => r ? BigInt(n) * nCr(n - 1, r - 1) / BigInt(r) : 1n
+const nthKSimplex = (n, k) => k ? BigInt(n + k - 1) * nthKSimplex(n, k - 1) / BigInt(k) : 1n
+
