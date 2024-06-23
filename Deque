@@ -36,10 +36,28 @@ class Deque {
         next.prev = prev, prev.next = next, this.size--
         return val  
     }
-    toArray() {
-        let arr = [], curr = this.head.next
-        while (curr !== this.tail)
-            arr.push(curr.val), curr = curr.next
-        return arr
+    *gen(node=this.head.next, limit=this.tail, step=1) {
+        for (let i = 0; node !== limit && node !== this.tail; i--) {
+            if (!i) {
+                yield node.val
+                i = step
+            }
+            node = node.next
+        }
+    }
+    *genRev(node=this.tail.prev, limit=this.head, step=1) {
+        for (let i = 0; node !== limit && node !== this.head; i--) {
+            if (!i) {
+                yield node.val
+                i = step
+            }
+            node = node.prev
+        }
+    }
+    toArray(node=this.head.next, limit=this.tail, step=1) {
+        return [...this.gen(node, limit, step)]
+    }
+    toRevArray(node=this.tail.prev, limit=this.head, step=1) {
+        return [...this.genRev(node, limit, step)]
     }
 }
