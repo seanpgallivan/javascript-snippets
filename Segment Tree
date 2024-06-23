@@ -110,16 +110,18 @@ class SegTreeArrLazy {
             right = mid < j ? this.rangeSum(i, j, p * 2 + 1, mid + 1, to) : 0
         return left + right
     }
-    toArray(res=new Array(this.n), p=1, from=0, to=this.n-1) {
+    *gen(from=0, to=this.n-1, p=1) {
         this.sink(p, from, to)
         if (from === to)
-            res[from] = this.data[p]
+            yield this.data[p]
         else {
             let mid = from + to >> 1
-            this.toArray(res, p * 2, from, mid)
-            this.toArray(res, p * 2 + 1, mid + 1, to)
+            yield* this.gen(from, mid, p * 2)
+            yield* this.gen(mid + 1, to, p * 2 + 1)
         }
-        return res
+    }
+    toArray(from=0, to=this.n-1) {
+        return [...this.gen(from, to)]
     }
 }
 
