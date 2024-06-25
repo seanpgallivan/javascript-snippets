@@ -1,0 +1,27 @@
+class Sieve {
+    constructor(n=1, nMax=n) {
+        this.data = new Uint8Array(nMax + 1)
+        this.n = 1
+        this.primes = []
+        this.update(n)
+    }
+    update(n) {
+        if (n <= this.n)
+            return
+        if (n + 1 > this.data.length) {
+            let newData = new Uint8Array(n + 1)
+            newData.set(this.data)
+            this.data = newData
+        }
+        for (let x of this.primes)
+            for (let mult = this.n + x - (this.n % x); mult <= n; mult += x)
+                this.data[mult] = 1
+        for (let x = this.n + 1; x <= n; x++)
+            if (!this.data[x]) {
+                this.primes.push(x)
+                for (let mult = x * x; mult <= n; mult += x)
+                    this.data[mult] = 1
+            }
+        this.n = n
+    }
+}
