@@ -1,0 +1,15 @@
+const findDiameter = edges => {
+    let n = edges.length + 1, curr = 0, res,
+        emap = Array.from({length: n}, () => [])
+    for (let [a,b] of edges)
+        emap[a].push(b), emap[b].push(a)
+    for (let i = 0; i < 2; i++) {
+        let q = new Queue([curr]), seen = new Uint8Array(emap.length)
+        for (seen[curr] = 1, res = -1; !q.isEmpty(); res++)
+            for (let qlen = q.size(); qlen; qlen--)
+                for (let next of emap[curr = q.pop()])
+                    if (!seen[next])
+                        seen[next] = 1, q.push(next)
+    }
+    return res
+}
