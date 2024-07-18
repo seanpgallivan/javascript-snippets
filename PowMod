@@ -1,0 +1,9 @@
+const powMod = (x, y, res=1, mod=1000000007n) => {
+    x = BigInt(x), y = BigInt(y), res = BigInt(res)
+    while (y) {
+        if (y % 2n)
+            res = res * x % mod
+        y >>= 1n, x = x * x % mod
+    }
+    return Number(res)
+};
