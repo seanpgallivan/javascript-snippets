@@ -1,16 +1,19 @@
 // Union-Find with path compression (array-based)
 const par = Uint32Array.from({length: n}, (_,i) => i),
-    find = x => x === par[x] ? x : par[x] = find(par[x]),
-    union = (x,y) => par[find(y)] = find(x)
+      find = x => x === par[x] ? x : par[x] = find(par[x]),
+      union = (x,y) => par[find(y)] = find(x)
 
 // Union-Find with path compression (map-based)
 const par = new Map(),
-    find = x => x === par.get(x) ? x : par.set(x, find(par.get(x))).get(x)
-    union = (x,y) => par.set(find(y), find(x)).get(x)
+      find = x => x === par.get(x) ? x : par.set(x, find(par.get(x))).get(x)
+      union = (x,y) => par.set(find(y), find(x)).get(x)
 
 
 // Union-Find by rank with path compression (array-based)
-const par = Uint32Array.from({length: n}, (_,i) => i), rank = new Uint32Array(n),
-    find = x => x === par[x] ? x : par[x] = find(par[x]),
-    union = (x,y) => (x = find(x)) === (y = find(y) ? x : rank[x] > rank[y] ?
-        par[y] = x : rank[y] > rank[x] ? par[x] = y : (rank[x]++, par[x] = y)
+const par = Uint32Array.from({length: n}, (_,i) => i),
+      rank = new Uint32Array(n),
+      find = x => x === par[x] ? x : par[x] = find(par[x]),
+      union = (x,y) => (x = find(x)) === (y = find(y)) ? x 
+                        : rank[x] > rank[y] ? par[y] = x
+                        : rank[y] > rank[x] ? par[x] = y
+                        : (rank[x]++, par[x] = y)
