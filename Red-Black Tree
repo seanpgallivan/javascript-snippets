@@ -30,6 +30,18 @@ class RedBlackTree {
         }
         return node ? node : par
     }
+    findLeft(key) {
+        let node = this.find(key)
+        while (node?.key > key)
+            node = node.par
+        return node?.key
+    }
+    findRight(key) {
+        let node = this.find(key)
+        while (node?.key < key)
+            node = node.par
+        return node?.key
+    }
     add(key) {
         // Increment counter or insert new node
         let node = this.find(key)
