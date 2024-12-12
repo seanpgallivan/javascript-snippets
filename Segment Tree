@@ -1,44 +1,31 @@
 // -----------------------------------------------
 // Simple RangeSum Segment Tree w/ array
 // -----------------------------------------------
-class SegTreeArr {
+class SegTreeSumArr {
     constructor(arg) {
-        this.n = typeof arg === "number" ? arg : arg.length
-        this.lookup = new Uint32Array(this.n)
-        let len = 1 << Math.ceil(Math.log2(this.n)) + 1
-        this.data = new Array(len).fill(0)
-        this.build(arg)
+        this.n = 1 << Math.ceil(Math.log2(arg.length ?? arg))
+        this.data = new Array(this.n << 1).fill(0)
+        if (arg.length)
+            this.build(arg)
     }
-    build(arr, p=1, from=0, to=this.n-1) {
-        if (from === to) {
-            this.lookup[from] = p
-            return this.data[p] = arr?.[from] ?? 0
-        }
-        let mid = from + to >> 1,
-            left = this.build(arr, p * 2, from, mid),
-            right = this.build(arr, p * 2 + 1, mid + 1, to)
-        return this.data[p] = left + right
+    build(arr, p=1, i=0, j=this.n, m=this.n >> 1) {
+        return i >= arr.length ? 0
+            : this.data[p] = !m ? arr[i] ?? 0
+                : this.build(arr, p * 2, i, i + m, m >> 1)
+                  + this.build(arr, p * 2 + 1, i + m, j, m >> 1)
     }
     set(i, val) {
-        let p = this.lookup[i], diff = val - this.data[p]
-        this.data[p] = val
-        for (p >>= 1; p; p >>= 1)
-            this.data[p] += diff
-        return val
+        this.data[i += this.n] = val
+        for (i >>= 1; i; i >>= 1)
+            this.data[i] = this.data[i * 2] + this.data[i * 2 + 1]
     }
-    get(i) {
-        return this.data[this.lookup[i]]
-    }
-    rangeSum(i, j, p=1, from=0, to=this.n-1) {
-        if (i <= from && to <= j)
-            return this.data[p]
-        let mid = from + to >> 1,
-            left = mid < i ? 0 : this.rangeSum(i, j, p * 2, from, mid),
-            right = j <= mid ? 0 : this.rangeSum(i, j, p * 2 + 1, mid + 1, to)
-        return left + right
-    }
-    toArray() {
-        return this.lookup.map(p => this.data[p])
+    get(i) { return this.data[i + this.n] }
+    rangeSum(i=0, j=this.n - 1) {
+        let res = 0
+        for (i += this.n, j += this.n; j >= i; i >>= 1, j >>= 1)
+            res += (i % 2 ? this.data[i++] : 0)
+                 + (j % 2 === 0 ? this.data[j--] : 0)
+        return res
     }
 }
 
@@ -49,42 +36,29 @@ class SegTreeArr {
 // -----------------------------------------------
 class SegTreeMaxArr {
     constructor(arg) {
-        this.n = typeof arg === "number" ? arg : arg.length
-        this.lookup = new Uint32Array(this.n)
-        let len = 1 << Math.ceil(Math.log2(this.n)) + 1
-        this.data = new Array(len)
-        this.build(arg)
+        this.n = 1 << Math.ceil(Math.log2(arg.length ?? arg))
+        this.data = new Array(this.n << 1).fill(-Infinity)
+        if (arg.length)
+            this.build(arg)
     }
-    build(arr, p=1, from=0, to=this.n-1) {
-        if (from === to) {
-            this.lookup[from] = p
-            return this.data[p] = arr?.[from] ?? 0
-        }
-        let mid = from + to >> 1,
-            left = this.build(arr, p * 2, from, mid),
-            right = this.build(arr, p * 2 + 1, mid + 1, to)
-        return this.data[p] = Math.max(left, right)
+    build(arr, p=1, i=0, j=this.n, m=this.n >> 1) {
+        return i >= arr.length ? -Infinity
+            : this.data[p] = !m ? arr[i] ?? -Infinity
+                : Math.max(this.build(arr, p * 2, i, i + m, m >> 1),
+                           this.build(arr, p * 2 + 1, i + m, j, m >> 1))
     }
     set(i, val) {
-        let p = this.lookup[i]
-        this.data[p] = val
-        for (p >>= 1; p; p >>= 1)
-            this.data[p] = Math.max(this.data[p * 2], this.data[p * 2 + 1])
-        return val
+        this.data[i += this.n] = val
+        for (i >>= 1; i; i >>= 1)
+            this.data[i] = Math.max(this.data[i * 2], this.data[i * 2 + 1])
     }
-    get(i) {
-        return this.data[this.lookup[i]]
-    }
-    rangeMax(i, j, p=1, from=0, to=this.n-1) {
-        if (i <= from && to <= j)
-            return this.data[p]
-        let mid = from + to >> 1,
-            left = mid < i ? 0 : this.rangeMax(i, j, p * 2, from, mid),
-            right = j <= mid ? 0 : this.rangeMax(i, j, p * 2 + 1, mid + 1, to)
-        return Math.max(left, right)
-    }
-    toArray() {
-        return this.lookup.map(p => this.data[p])
+    get(i) { return this.data[i + this.n] }
+    rangeMax(i=0, j=this.n - 1) {
+        let res = -Infinity
+        for (i += this.n, j += this.n; j >= i; i >>= 1, j >>= 1)
+            res = Math.max(res, i % 2 ? this.data[i++] : -Infinity,
+                           j % 2 === 0 ? this.data[j--] : -Infinity)
+        return res
     }
 }
 
