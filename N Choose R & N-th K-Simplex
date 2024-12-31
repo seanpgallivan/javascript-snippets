@@ -68,3 +68,40 @@ const nks = (n, k) => k ? nks(n, k - 1) * (n + k - 1) / k : 1
 const ncr = (n, r) => r ? ncr(n - 1, r - 1) * BigInt(n) / BigInt(r) : 1n
 const nks = (n, k) => k ? nks(n, k - 1) * BigInt(n + k - 1) / BigInt(k) : 1n
 
+
+// ----------------------------------------------------
+// Factorials class (on-demand) w/ ncr() and nks()
+// ----------------------------------------------------
+class BigFactsMod {
+    constructor(n=1, nMax=n, mod=1000000007n) {
+        this.n = 1
+        this.mod = mod
+        this.inv = new BigInt64Array(nMax + 1).fill(1n, 0, 2)
+        this.fact = new BigInt64Array(nMax + 1).fill(1n, 0, 2)
+        this.ifact = new BigInt64Array(nMax + 1).fill(1n, 0, 2)
+        this.build(n)
+    }
+    build(n) {
+        let {mod, inv, fact, ifact} = this, nm = Number(mod)
+        for (let i = this.n + 1, bi = BigInt(i); i <= n; i++, bi++) {
+            inv[i] = mod - mod / bi * inv[nm % i] % mod
+            fact[i] = fact[i - 1] * bi % mod
+            ifact[i] = ifact[i - 1] * inv[i] % mod
+        }
+        this.n = n
+    }
+    ncr(n, r) {
+        if (n > this.n)
+            this.build(n)
+        let {fact, ifact, mod} = this
+        return fact[n] * ifact[r] * ifact[n - r] % mod
+    }
+    nks(n, k) {
+        if (n <= k)
+            [n, k] = [k + 1, n - 1]
+        if (n + k - 1 > this.n)
+            this.build(n + k - 1)
+        let {fact, ifact, mod} = this
+        return fact[n + k - 1] * ifact[n - 1] * ifact[k] % mod
+    }
+}
