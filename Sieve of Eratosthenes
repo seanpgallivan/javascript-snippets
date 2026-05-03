@@ -2,12 +2,12 @@
 // Simple implementation
 // --------------------------------------
 
-const n = 1000, sieve = new Uint8Array(n + 1), primes = []
+const nMax = 1000, sieve = new Uint8Array(nMax + 1), primes = []
 
-for (let x = 2; x <= n; x++)
+for (let x = 2; x <= nMax; x++)
     if (!sieve[x]) {
         primes.push(x)
-        for (let mult = x * x; mult <= n; mult += x)
+        for (let mult = x * x; mult <= nMax; mult += x)
             sieve[mult] = 1
     }
 
