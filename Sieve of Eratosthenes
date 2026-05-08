@@ -14,6 +14,19 @@ for (let x = 2; x <= nMax; x++)
 
 
 // --------------------------------------
+// Simple implementation, w/ prime factor sets
+// --------------------------------------
+
+const nMax = 1000, sieve = new Array(nMax + 1)
+
+for (let x = 2; x <= nMax; x++)
+    if (!sieve[x])
+        for (let mult = x; mult <= nMax; mult += x)
+            (sieve[mult] ?? (sieve[mult] = new Set())).add(x)
+
+
+
+// --------------------------------------
 // Full class implementation, updateable
 // --------------------------------------
 
