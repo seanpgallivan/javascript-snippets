@@ -1,0 +1,20 @@
+const primeFactors = x => {
+    const pf = new Map(), {sqrt} = Math
+    for (let i = 2, limit = sqrt(x), count = 0; i <= limit; i++) {
+        while (x % i === 0)
+            count++, x /= i
+        if (count)
+            pf.set(i, count), count = 0, limit = sqrt(x)
+    }
+    if (x !== 1)
+        pf.set(x, 1)
+    return pf
+};
+
+const isPrime = x => {
+    const limit = Math.sqrt(x)
+    for (let i = 2; i <= limit ; i++)
+        if (x % i === 0)
+            return false
+    return x > 1 ? true : false
+};
