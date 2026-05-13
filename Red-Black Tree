@@ -1,3 +1,20 @@
+/* ----------------------------
+
+TO DO LIST:
+Use extends (w/ super()) to make different versions efficiently, use public/private functions?
+
+Add children count to nodes so we can find the "index #" like a sorted list in log n while finding target
+  Also allows us to access data by index rather than just value
+Maybe add index lookup map to speed up lookups to O(1) if we've found the value since the last insertion/deletion
+  Would need this.opId assigned at each ins/del to tell us if we need to re-find the node
+Create a pared-down version with no duplicates allowed for Objects
+Priority stored separately version?
+
+---------------------------- */
+
+
+
+
 class RBTNode {
     constructor(key, val, par, red=true) {
         this.key = key
