@@ -1,28 +1,28 @@
-// Wavelet Tree implementation w/ rank compression
+// Wavelet Tree implementation
 class WaveletTree  {
     constructor(arr, lo=null, hi=null, expand=null) {
         this.lo
         if (lo === null) {
-            // O(wn + wα log wα): Force rank substitution
+            // O(n + α log α): Force rank substitution
             expand = this.compress(arr), lo = 0, hi = expand.length - 1
             this.lo = expand[lo]
-            if (!hi) 
+            if (!hi)
                 return
         } else if (lo === hi) {
-            // Reveal uncompressed value on leaf node
             this.lo = expand?.[lo] ?? lo
             return
         } else
-            this.lo = expand[lo]
-        this.hi = expand[hi]
+            this.lo = expand?.[lo] ?? lo
+        this.hi = expand?.[hi] ?? hi
         this.leftCount = new Uint32Array(arr.length + 1)
-        this.prefixSum = new Float64Array(arr.length + 1)
+        // Next line only needed for sum functions
+        this.prefixSum = new Array(arr.length + 1).fill(0,0,1)
         this.left
         this.right
         this.build(arr, lo, hi, expand)
     }
     compress(arr) {
-        // O(wn + wα log wα): Compress arr values
+        // O(n + α log α): Compress arr values by rank
         const expand = Uint32Array.from(new Set(arr)).sort()
         if (expand.length > 1) {
             const compress = expand.reduce((a,c,i) => a.set(c, i), new Map())
@@ -32,20 +32,23 @@ class WaveletTree  {
         return expand
     }
     build(arr, lo, hi, expand) {
-        // O(wn): Split arr in half by alphabet size, update arrays, & recurse
+        // O(n): Split arr in half by alphabet size, update data, & recurse
         const n = arr.length, mid = lo + hi >> 1, leftArr = [], rightArr = []
         for (let i = 0; i < n; i++) {
             if (arr[i] > mid)
                 rightArr.push(arr[i]), this.leftCount[i + 1] = this.leftCount[i]
             else
                 leftArr.push(arr[i]), this.leftCount[i + 1] = this.leftCount[i] + 1
+            // Next line only needed for sum functions
             this.prefixSum[i + 1] = this.prefixSum[i] + (expand?.[arr[i]] ?? arr[i])
         }
-        this.left = new WaveletTree(leftArr, lo, mid, expand)
-        this.right = new WaveletTree(rightArr, mid + 1, hi, expand)
+        if (leftArr.length)
+            this.left = new WaveletTree(leftArr, lo, mid, expand)
+        if (rightArr.length)
+            this.right = new WaveletTree(rightArr, mid + 1, hi, expand)
     }
-    kthOfRange(k, l, r) {
-        // O(log wα): Find range quantile
+    kthOfRange(k, l=0, r=this.leftCount.length - 2) {
+        // O(log α): Find range quantile
         if (this.hi === undefined)
             return this.lo
         const lcLeft = this.leftCount[l], lcRight = this.leftCount[r + 1],
@@ -54,17 +57,140 @@ class WaveletTree  {
             ? this.left.kthOfRange(k, lcLeft, lcRight - 1)
             : this.right.kthOfRange(k - lcRange, l - lcLeft, r - lcRight)
     }
-    rangeSumSmallestK(k, l, r) {
-        // O(log wα): Find sum of the k smallest values in range
+    rangeMin(l=0, r=this.leftCount.length - 2) {
+        // O(log α): Find the smallest value in range
+        return this.kthOfRange(r - l + 1, l, r)
+    }
+    rangeMax(l=0, r=this.leftCount.length - 2) {
+        // O(log α): Find the largest value in range
+        return this.kthOfRange(1, l, r)
+    }
+    rangeMedian(l=0, r=this.leftCount.length - 2) {
+        // O(log α): Find the median value in range
+        return this.kthOfRange(r - l + 2 >> 1, l, r)
+    }
+    rangeCountKOrLess(k, l=0, r=this.leftCount.length - 2) {
+        // O(log α): Find count of the values k or less in range
+        if (k < this.lo)
+            return 0
+        if (this.hi === undefined || k >= this.hi)
+            return r - l + 1
+        const lCl = this.leftCount[l], lCr = this.leftCount[r + 1]
+        return k >= this.right?.lo
+            ? lCr - lCl + this.right.rangeCountKOrLess(k, l - lCl, r - lCr)
+            : lCr - lCl
+                ? this.left.rangeCountKOrLess(k, lCl, lCr - 1)
+                : 0
+    }
+    
+    // this.prefixSum necessary for sum functions to work
+    rangeSumLeastK(k, l=0, r=this.leftCount.length - 2) {
+        // O(log α): Find sum of the k smallest values in range
         if (r < l || k < 1)
             return 0
         if (this.hi === undefined)
             return this.lo * Math.min(k, r - l + 1)
         if (k > r - l)
             return this.prefixSum[r + 1] - this.prefixSum[l]
-        const lcLeft = ~~this.leftCount[l], lcRight = this.leftCount[r + 1],
-              lcRange = lcRight - lcLeft
-        return this.left.rangeSumSmallestK(k, lcLeft, lcRight - 1)
-             + this.right.rangeSumSmallestK(k - lcRange, l - lcLeft, r - lcRight)
+        const lCl = this.leftCount[l], lCr = this.leftCount[r + 1]
+        return (this.left?.rangeSumLeastK(k, lCl, lCr - 1) ?? 0)
+             + (this.right?.rangeSumLeastK(k - (lCr - lCl), l - lCl, r - lCr) ?? 0)
+    }
+    rangeSum(k, l=0, r=this.leftCount.length - 2) {
+        // O(log α): Find sum of all values in range
+        return this.rangeSumLeastK(r - l + 1, l, r)
+    }
+    rangeSumKOrLess(k, l=0, r=this.leftCount.length - 1) {
+        // O(log α): Find sum of the values k or less in range
+        if (r < l || k < this.lo)
+            return 0
+        if (this.hi === undefined)
+            return this.lo * (r - l + 1)
+        if (k >= this.hi)
+            return this.prefixSum[r + 1] - this.prefixSum[l]
+        const lCl = this.leftCount[l], lCr = this.leftCount[r + 1]
+        return (this.left?.rangeSumKOrLess(k, lCl, lCr - 1) ?? 0)
+             + (this.right?.rangeSumKOrLess(k, l - lCl, r - lCr) ?? 0)
     }
 }
+
+
+
+
+// ----------------------------------------------------------------------------
+// TESTING SPACE:
+// ----------------------------------------------------------------------------
+
+
+const getRan = (cap, start=0) => start + ~~(Math.random() * (cap - start))
+
+const arr = []
+const foo = new WaveletTree([...arr])
+const k = 9, l = 47, r = 70
+
+console.log(foo.kthOfRange(k, l, r))
+console.log(arr.slice(l, r + 1).sort((a,b) => a - b)[k - 1])
+console.log(foo.rangeSumLeastK(k, l, r))
+console.log(" ->",arr.slice(l, r + 1).sort((a,b) => a - b).slice(0, k).reduce((a,c) => a + c, 0))
+console.log(foo.rangeCountKOrLess(k,l,r))
+console.log(" ->",arr.slice(l, r + 1).sort((a,b) => a - b).filter(x => x <= k).reduce((a,c) => a + 1, 0))
+console.log(foo.rangeSumKOrLess(k,l,r))
+console.log(" ->",arr.slice(l, r + 1).sort((a,b) => a - b).filter(x => x <= k).reduce((a,c) => a + c, 0))
+
+const test = (trees, tests, nmax, vmax) => {
+    let res1, res2
+    for (let i = 0; i < trees; i++) {
+        const n = getRan(nmax, 5),
+              v = getRan(vmax, 5)
+        const arr = []
+        for (let a = 0; a < n; a++)
+            arr.push(getRan(v))
+        const sorted = Uint32Array.from(arr).sort()
+        const foo = new WaveletTree([...arr])
+        const bar = new WaveletTree([...arr], 0, v)
+        for (let t = 0; t < tests; t++) {
+            let err = 0
+            const ki = getRan(n),
+                  kv = getRan(v),
+                  l = getRan(n - (n >> 4)),
+                  r = getRan(n, l)
+            
+            res1 = foo.rangeCountKOrLess(kv, l, r),
+            res2 = arr.slice(l, r + 1).sort((a,b) => a - b).filter(x => x <= kv).reduce((a,c) => a + 1, 0)
+            if (res1 !== res2)
+                console.log("n,v",[n,v],"  --> k,l,r",[kv,l,r],"  --> foo count-k-less error",++err,"!  ", res1, res2)
+            
+            res1 = foo.rangeSumKOrLess(kv, l, r),
+            res2 = arr.slice(l, r + 1).sort((a,b) => a - b).filter(x => x <= kv).reduce((a,c) => a + c, 0)
+            if (res1 !== res2)
+                console.log("n,v",[n,v],"  --> k,l,r",[kv,l,r],"  --> foo sum-k-less error",++err,"!  ", res1, res2)
+            
+            res1 = foo.rangeSumLeastK(ki, l, r),
+            res2 = arr.slice(l, r + 1).sort((a,b) => a - b).slice(0, ki).reduce((a,c) => a + c, 0)
+            if (res1 !== res2)
+                console.log("n,v",[n,v],"  --> k,l,r",[ki,l,r],"  --> foo sum-least-k error",++err,"!  ", res1, res2)
+            
+            res1 = bar.rangeCountKOrLess(kv, l, r),
+            res2 = arr.slice(l, r + 1).sort((a,b) => a - b).filter(x => x <= kv).reduce((a,c) => a + 1, 0)
+            if (res1 !== res2)
+                console.log("n,v",[n,v],"  --> k,l,r",[kv,l,r],"  --> bar count-k-less error",++err,"!  ", res1, res2)
+            
+            res1 = bar.rangeSumKOrLess(kv, l, r),
+            res2 = arr.slice(l, r + 1).sort((a,b) => a - b).filter(x => x <= kv).reduce((a,c) => a + c, 0)
+            if (res1 !== res2)
+                console.log("n,v",[n,v],"  --> k,l,r",[kv,l,r],"  --> bar sum-k-less error",++err,"!  ", res1, res2)
+            
+            res1 = bar.rangeSumLeastK(ki, l, r),
+            res2 = arr.slice(l, r + 1).sort((a,b) => a - b).slice(0, ki).reduce((a,c) => a + c, 0)
+            if (res1 !== res2)
+                console.log("n,v",[n,v],"  --> k,l,r",[ki,l,r],"  --> bar sum-least-k error",++err,"!  ", res1, res2)
+            
+            if (err) {
+                console.log(JSON.stringify(arr))
+                return
+            }
+        }
+    }
+    console.log("all good!")
+}
+test(20,20,10000,1000000)
